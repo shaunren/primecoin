@@ -1,3 +1,8 @@
+Primecoin qt client with CUDA miner
+===================================
+
+This is an attempt to include CUDA support into the mining portion of the primecoin client, so that mining is faster.
+
 Bitcoin integration/staging tree
 ================================
 

@@ -2,11 +2,14 @@ TEMPLATE = app
 TARGET = primecoin-qt
 macx:TARGET = "Primecoin-Qt"
 VERSION = 0.8.3
-INCLUDEPATH += src src/json src/qt
+INCLUDEPATH += src src/json src/qt src/cuda
 QT += network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
+
+# avoid warnings about FD_SETSIZE being redefined
+win32:DEFINES += FD_SETSIZE=1024
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -163,6 +166,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/bloom.h \
     src/mruset.h \
     src/checkqueue.h \
+    src/prime.h \
     src/json/json_spirit_writer_template.h \
     src/json/json_spirit_writer.h \
     src/json/json_spirit_value.h \
@@ -283,6 +287,8 @@ SOURCES += src/qt/bitcoin.cpp \
     src/prime.cpp \
     src/checkpointsync.cpp
 
+
+
 RESOURCES += src/qt/bitcoin.qrc
 
 FORMS += src/qt/forms/sendcoinsdialog.ui \
@@ -333,6 +339,9 @@ TSQM.commands = $$QMAKE_LRELEASE ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
 TSQM.CONFIG = no_link
 QMAKE_EXTRA_COMPILERS += TSQM
 
+# This makes the .cu files appear in your project
+OTHER_FILES +=  src/cuda/mainkernel.cu
+
 # "Other files" to show in Qt Creator
 OTHER_FILES += README.md \
     doc/*.rst \
@@ -342,6 +351,44 @@ OTHER_FILES += README.md \
     src/test/*.h \
     src/qt/test/*.cpp \
     src/qt/test/*.h
+
+#cuda
+
+# CUDA settings <-- may change depending on your system
+CUDA_SOURCES += src/cuda/mainkernel.cu
+CUDA_SDK = "/usr/local/cuda/"   # Path to cuda SDK install
+CUDA_DIR = "/usr/local/cuda/"            # Path to cuda toolkit install
+
+# DO NOT EDIT BEYOND THIS UNLESS YOU KNOW WHAT YOU ARE DOING....
+
+SYSTEM_NAME = unix         # Depending on your system either 'Win32', 'x64', or 'Win64'
+SYSTEM_TYPE = 64            # '32' or '64', depending on your system
+CUDA_ARCH = sm_21           # Type of CUDA architecture, for example 'compute_10', 'compute_11', 'sm_10'
+NVCC_OPTIONS = --use_fast_math
+
+# include paths
+INCLUDEPATH += $$CUDA_DIR/include
+
+# library directories
+QMAKE_LIBDIR += $$CUDA_DIR/lib64/
+
+CUDA_OBJECTS_DIR = ./
+
+# Add the necessary libraries
+CUDA_LIBS = -lcuda -lcudart
+
+# The following makes sure all path names (which often include spaces) are put between quotation marks
+CUDA_INC = $$join(INCLUDEPATH,'" -I"','-I"','"')
+#LIBS += $$join(CUDA_LIBS,'.so ', '', '.so')
+LIBS += $$CUDA_LIBS
+
+cuda.input = CUDA_SOURCES
+cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+cuda.commands = $$CUDA_DIR/bin/nvcc $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE -arch=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+cuda.dependency_type = TYPE_C
+QMAKE_EXTRA_COMPILERS += cuda
+
+#cuda end
 
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
@@ -407,7 +454,7 @@ macx:QMAKE_INFO_PLIST = share/qt/Info.plist
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lgmp
 # -lgdi32 has to happen after -lcrypto (see  #681)
 win32:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX

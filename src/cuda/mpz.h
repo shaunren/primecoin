@@ -177,7 +177,7 @@ __device__ __host__ inline void mpz_set_str(mpz_t *mpz, const char *user_str) {
   for (i = 0; i < num_digits; i ++) {
     str[len - i * char_per_digit] = (char) 0;
     char *start = str + (int) max(len - (i + 1) * char_per_digit, 0);
-    digit_t d = strtol(start, NULL, 16);
+    digit_t d = cuda_strtol(start, NULL, 16);
 
     /* keep track of whether or not every digit is zero */
     is_zero = is_zero && (d == 0);
