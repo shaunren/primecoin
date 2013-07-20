@@ -125,11 +125,12 @@ void Shutdown()
 void DetectShutdownThread(boost::thread_group* threadGroup)
 {
     // Tell the main threads to shutdown.
-    while (!fRequestShutdown) MilliSleep(200);
- 
-    if(fGenerate) GenerateBitcoins(false, NULL);
-    threadGroup->interrupt_all();
-
+    while (!fRequestShutdown)
+    {
+        MilliSleep(200);
+        if (fRequestShutdown)
+            threadGroup->interrupt_all();
+    }
 }
 
 void HandleSIGTERM(int)
