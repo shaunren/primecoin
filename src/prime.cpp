@@ -636,7 +636,7 @@ bool MineProbablePrimeChain(CBlock& block, mpz_class& mpzFixedMultiplier, bool& 
 
     //FIXME: this is just for debugging, if condition should be replaced afterwards.
     //If we don't have this the client doesn't update the blockchain (because the CUDA part crashes right now)
-    if(candidate_num > 1000)
+    if(candidate_num > 10)
     {
         cudaCandidateTransfer *cudaCandidateTransferArrayDevice = newDevicePointer<cudaCandidateTransfer>(candidate_num);
         char *resultsDevice = newDevicePointer<char>(candidate_num);
@@ -646,6 +646,7 @@ bool MineProbablePrimeChain(CBlock& block, mpz_class& mpzFixedMultiplier, bool& 
         runCandidateSearchKernel(cudaCandidateTransferArrayDevice, resultsDevice, candidate_num);
         checkForCudaError("launch kernel");
         //memcpy from device
+        printf("[CUDA] Device->Host\n");
         cudaMemcpy(resultsHost, resultsDevice, sizeof(char)*candidate_num, cudaMemcpyDeviceToHost);
         checkForCudaError("cudaMemcpy: cudaMemcpyDeviceToHost");
 

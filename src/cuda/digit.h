@@ -14,7 +14,7 @@
 
 #define LOG2_DIGIT_BASE     32
 #define DIGIT_BASE          ((unsigned long long) 1 << (LOG2_DIGIT_BASE))
-#define DIGITS_CAPACITY     8
+#define DIGITS_CAPACITY     16
 
 typedef unsigned digit_t;
 
@@ -163,11 +163,10 @@ __device__ __host__ inline unsigned digits_count(digit_t digits[DIGITS_CAPACITY]
  */
 __device__ __host__ inline int digits_compare(digit_t *digits1, unsigned num_d1,
                                        digit_t *digits2, unsigned num_d2) {
-  unsigned max_digits = (num_d1 > num_d2) ? num_d1 : num_d2;
   int i;
 
   /* Iterate backwards so that we look at the most significant digits first */
-  for (i = max_digits - 1; i >= 0; i--) {
+  for (i = (num_d1>num_d2 ? num_d1 : num_d2) - 1; i >= 0; i--) {
     digit_t d1 = ((unsigned) i < num_d1) ? digits1[i] : 0;
     digit_t d2 = ((unsigned) i < num_d2) ? digits2[i] : 0;
 

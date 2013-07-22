@@ -57,7 +57,7 @@ __device__ inline void mpz_tdiv_r(mpz_t *ROP, mpz_t *OP1, mpz_t *OP2)
 
 __device__ inline unsigned int mpz_get_ui(mpz_t *OP)
 {
-    return OP->digits[0];
+    return OP->capacity==0 ? 0 : OP->digits[0];
 }
 
 //Set product to multiplicator times 2 raised to exponent_of_2. This operation can also be defined as a left shift, exponent_of_2 steps.
@@ -141,7 +141,7 @@ __device__ bool devFermatProbablePrimalityTest(mpz_t &mpzN, unsigned int& nLengt
 
     if (nFractionalLength >= (1 << nFractionalBits))
     {
-	printf("[CUDA] Error FermatProbablePrimalityTest() : fractional assert");
+	printf("[CUDA] Error FermatProbablePrimalityTest() : fractional assert - %d", nFractionalLength);
         return false;
     }
 
@@ -243,7 +243,7 @@ __device__ bool devEulerLagrangeLifchitzPrimalityTest(mpz_t &mpzN, bool fSophieG
     
     if (nFractionalLength >= (1 << nFractionalBits))
     {
-        printf("[CUDA] error EulerLagrangeLifchitzPrimalityTest() : fractional assert");
+        printf("[CUDA] error EulerLagrangeLifchitzPrimalityTest() : fractional assert - %d", nFractionalLength);
         return false;
     }
     nLength = (nLength & TARGET_LENGTH_MASK) | nFractionalLength;

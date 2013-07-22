@@ -96,8 +96,8 @@ __device__ __host__ inline void mpz_negate(mpz_t *mpz) {
  */
 __device__ __host__ inline void mpz_init(mpz_t *mpz) {
   mpz->capacity = DIGITS_CAPACITY;
-  /* digits_set_zero(mpz->digits); */
-  /* mpz->sign = MPZ_NONNEGATIVE; */
+  digits_set_zero(mpz->digits);
+  mpz->sign = MPZ_NONNEGATIVE;
 }
 
 /**
@@ -153,7 +153,7 @@ __device__ __host__ inline void mpz_set_str(mpz_t *mpz, const char *user_str) {
 
   const int bufsize = 1024;
   char buf[bufsize];
-  memcpy(buf, user_str, bufsize);
+  cudaMemcpy(buf, user_str, bufsize, cudaMemcpyDeviceToDevice);
   buf[bufsize - 1] = (char) 0;
   char *str = &buf[0];
 
@@ -181,7 +181,7 @@ __device__ __host__ inline void mpz_set_str(mpz_t *mpz, const char *user_str) {
 
     /* keep track of whether or not every digit is zero */
     is_zero = is_zero && (d == 0);
-
+    //printf("%d\n",i);
     /* parse the string backwards (little endian order) */
     mpz->digits[i] = d;
   }
